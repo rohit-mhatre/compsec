@@ -22,8 +22,9 @@ int RC6::right_rot(unsigned int a, unsigned int b, unsigned int w) {
 
 std::string RC6::little_endian(std::string str) {
     std::string endian;
-    if (str.length() % 2 == 1)
+    if (str.length() % 2 == 1){
         str = "0" + str;
+    }   
     for (auto r_it = str.rbegin(); r_it != str.rend(); r_it += 2) {
         endian.push_back(*(r_it + 1));
         endian.push_back(*r_it);
@@ -32,24 +33,24 @@ std::string RC6::little_endian(std::string str) {
 }
 
 std::string RC6::hex_to_string(unsigned int A, unsigned int B, unsigned int C, unsigned int D) {
-    std::stringstream ss;
+    std::stringstream temp;
     std::string strA, strB, strC, strD, result;
 
-    ss << std::setfill('0') << std::setw(4) << std::hex << A;
-    strA = little_endian(ss.str());
-    ss.str("");
+    temp << std::setfill('0') << std::setw(4) << std::hex << A;
+    strA = little_endian(temp.str());
+    temp.str("");
 
-    ss << std::setfill('0') << std::setw(4) << std::hex << B;
-    strB = little_endian(ss.str());
-    ss.str("");
+    temp << std::setfill('0') << std::setw(4) << std::hex << B;
+    strB = little_endian(temp.str());
+    temp.str("");
 
-    ss << std::setfill('0') << std::setw(4) << std::hex << C;
-    strC = little_endian(ss.str());
-    ss.str("");
+    temp << std::setfill('0') << std::setw(4) << std::hex << C;
+    strC = little_endian(temp.str());
+    temp.str("");
 
-    ss << std::setfill('0') << std::setw(4) << std::hex << D;
-    strD = little_endian(ss.str());
-    ss.str("");
+    temp << std::setfill('0') << std::setw(4) << std::hex << D;
+    strD = little_endian(temp.str());
+    temp.str("");
 
     result = strA + strB + strC + strD;
     return result;
@@ -89,7 +90,26 @@ std::string RC6::encrypt(const std::string &text) {
     B = strtoul(little_endian(text.substr(8, 8)).c_str(), NULL, 16);
     C = strtoul(little_endian(text.substr(16, 8)).c_str(), NULL, 16);
     D = strtoul(little_endian(text.substr(24, 8)).c_str(), NULL, 16);
-    // Encryption Algorithm
+    
+    unsigned int t, u, temp;
+
+    B += S[0];
+    D += S[1];
+    for(int i = 1; i <= r; ++i){
+        t = left_rot((B * (2 * B + 1)) % modulo, log_w, w);
+        u = left_rot((D * (2 * D + 1)) % modulo, log_w, w);
+        A = left_rot((A ^ t), u , w) + S[2 * i];
+        C = left_rot((C ^ u), t, w) + S[2 * i + 1];
+        temp = A;
+        A = B;
+        B = C;
+        C = D;
+        D = temp;
+    }
+
+    A += S[2 * r + 2];
+    C += S[2 * r + 3];
+
     result = hex_to_string(A, B, C, D);
     return result;
 }
@@ -101,7 +121,25 @@ std::string RC6::decrypt(const std::string &text) {
     B = strtoul(little_endian(text.substr(8, 8)).c_str(), NULL, 16);
     C = strtoul(little_endian(text.substr(16, 8)).c_str(), NULL, 16);
     D = strtoul(little_endian(text.substr(24, 8)).c_str(), NULL, 16);
-    // Decryption Algorithm
+    
+    unsigned int t, u, temp;  
+  
+    C -= S[2 * r + 3];
+    A -= S[2 * r + 2];
+    for(int i = r; i >= 1; --i){
+        temp = D;
+        D = C;
+        C = B;
+        B = A;
+        A = temp;
+        u = left_rot((D * (2 * D + 1)) % modulo, log_w, w);
+        t = left_rot((B * (2 * B + 1)) % modulo, log_w, w);
+        C = right_rot((C - S[2 * i + 1]) % modulo, t, w) ^ u;
+        A = right_rot((A - S[2 * i]) % modulo, u, w) ^ t;
+    }
+    D -= S[1];
+    B -= S[0];
+
     result = hex_to_string(A, B, C, D);
     return result;
 }
@@ -111,10 +149,8 @@ std::string RC6::run(const std::string &mode, const std::string &text, const std
     key_schedule(key);
     if (mode.compare(0, strlen("Encryption"), "Encryption") == 0) {
         result = encrypt(text);
-        result = result + " ";
     } else if (mode.compare(0, strlen("Decryption"), "Decryption") == 0) {
         result = decrypt(text);
-        result = result + " ";
     }
         std::stringstream formatted_result;
     for (size_t i = 0; i < result.size(); i += 2) {

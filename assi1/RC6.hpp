@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath> // Include cmath for log2, pow, ceil
 #include <iomanip> // Include iomanip for setfill, setw
+#include <sstream>  
 
 
 class RC6 {
