@@ -1,4 +1,4 @@
-#include "RC6.hpp"
+#include "HEADER.hpp"
 
 RC6::RC6(unsigned int W, unsigned int R, unsigned int B)
     : w(W), r(R), b(B), log_w(static_cast<unsigned int>(log2(w))), modulo(static_cast<int64_t>(pow(2, w))), S(new unsigned int[2 * r + 4]) {}
@@ -154,9 +154,9 @@ std::string RC6::run(const std::string &mode, const std::string &text, const std
     }
         std::stringstream formatted_result;
     for (size_t i = 0; i < result.size(); i += 2) {
-        formatted_result << result.substr(i, 2); // Extract two characters
+        formatted_result << result.substr(i, 2); 
         if (i + 2 < result.size()) {
-            formatted_result << " "; // Insert space after every two characters except the last pair
+            formatted_result << " "; 
         }
     }
     return formatted_result.str();

@@ -1,5 +1,5 @@
-#ifndef RC6_HPP__
-#define RC6_HPP__
+#ifndef HEADER_HPP__
+#define HEADER_HPP__
 
 #include <iostream>
 #include <string>
